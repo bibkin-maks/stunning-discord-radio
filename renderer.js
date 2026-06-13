@@ -1,0 +1,40 @@
+const STATIONS = [
+  { name: "Groove Salad · SomaFM", url: "https://ice1.somafm.com/groovesalad-128-mp3" },
+  { name: "Drone Zone · SomaFM", url: "https://ice1.somafm.com/dronezone-128-mp3" },
+  { name: "DEF CON Radio · SomaFM", url: "https://ice1.somafm.com/defcon-256-mp3" },
+  { name: "Secret Agent · SomaFM", url: "https://ice1.somafm.com/secretagent-128-mp3" },
+];
+
+const $ = (id) => document.getElementById(id);
+
+const audio = new Audio();
+audio.crossOrigin = "anonymous";
+
+function fillStations() {
+  const sel = $("station");
+  STATIONS.forEach((s, i) => {
+    const o = document.createElement("option");
+    o.value = String(i);
+    o.textContent = s.name;
+    sel.appendChild(o);
+  });
+}
+
+async function play() {
+  const custom = $("custom").value.trim();
+  const station = STATIONS[Number($("station").value)];
+  const url = custom || (station && station.url);
+  if (!url) return;
+
+  audio.src = url;
+  try {
+    await audio.play();
+    $("status").textContent = "Playing " + (custom ? url : station.name);
+  } catch (e) {
+    $("status").textContent = "Playback failed: " + e.message;
+  }
+}
+
+$("play").addEventListener("click", play);
+
+fillStations();
