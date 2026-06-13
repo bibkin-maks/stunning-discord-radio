@@ -35,6 +35,14 @@ async function play() {
   }
 }
 
+function stop() {
+  audio.pause();
+  audio.removeAttribute("src");
+  audio.load();
+  $("status").textContent = "Idle";
+}
+
 $("play").addEventListener("click", play);
+$("stop").addEventListener("click", stop);
 
 fillStations();
