@@ -20,6 +20,26 @@ function fillStations() {
   });
 }
 
+async function loadDevices() {
+  try {
+    const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+    s.getTracks().forEach((t) => t.stop());
+  } catch {}
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  const outs = devices.filter((d) => d.kind === "audiooutput");
+  const sel = $("device");
+  const prev = sel.value;
+  sel.innerHTML = "";
+  for (const d of outs) {
+    const o = document.createElement("option");
+    o.value = d.deviceId;
+    o.textContent = d.label || `Output ${d.deviceId.slice(0, 6)}`;
+    sel.appendChild(o);
+  }
+  if (prev) sel.value = prev;
+  $("status").textContent = `${outs.length} output device${outs.length !== 1 ? "s" : ""} found`;
+}
+
 async function play() {
   const custom = $("custom").value.trim();
   const station = STATIONS[Number($("station").value)];
@@ -44,5 +64,7 @@ function stop() {
 
 $("play").addEventListener("click", play);
 $("stop").addEventListener("click", stop);
+$("refresh").addEventListener("click", loadDevices);
 
 fillStations();
+loadDevices();
