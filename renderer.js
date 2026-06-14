@@ -46,6 +46,11 @@ async function play() {
   const url = custom || (station && station.url);
   if (!url) return;
 
+  if (audio.setSinkId) {
+    try { await audio.setSinkId($("device").value); }
+    catch (e) { $("status").textContent = "Could not route audio: " + e.message; return; }
+  }
+
   audio.src = url;
   try {
     await audio.play();
