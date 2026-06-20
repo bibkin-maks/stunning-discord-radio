@@ -12,6 +12,12 @@ const $ = (id) => document.getElementById(id);
 const audio = new Audio();
 audio.crossOrigin = "anonymous";
 
+function setStatus(msg, cls) {
+  const el = $("status");
+  el.textContent = msg;
+  el.className = cls || "";
+}
+
 function fillStations() {
   const sel = $("station");
   STATIONS.forEach((s, i) => {
@@ -39,28 +45,28 @@ async function loadDevices() {
     sel.appendChild(o);
   }
   if (prev) sel.value = prev;
-  $("status").textContent = `${outs.length} output device${outs.length !== 1 ? "s" : ""} found`;
+  setStatus(`${outs.length} output device${outs.length !== 1 ? "s" : ""} found`);
 }
 
 async function play() {
   const custom = $("custom").value.trim();
   const station = STATIONS[Number($("station").value)];
   const url = custom || (station && station.url);
-  if (!url) return;
+  if (!url) return setStatus("No station or URL selected", "err");
 
   audio.volume = Number($("volume").value) / 100;
 
   if (audio.setSinkId) {
     try { await audio.setSinkId($("device").value); }
-    catch (e) { $("status").textContent = "Could not route audio: " + e.message; return; }
+    catch (e) { setStatus("Could not route audio: " + e.message, "err"); return; }
   }
 
   audio.src = `http://127.0.0.1:${PORT}/stream?url=${encodeURIComponent(url)}`;
+  setStatus("Connecting…");
   try {
     await audio.play();
-    $("status").textContent = "Playing " + (custom ? url : station.name);
   } catch (e) {
-    $("status").textContent = "Playback failed: " + e.message;
+    setStatus("Playback failed: " + e.message, "err");
   }
 }
 
@@ -68,8 +74,17 @@ function stop() {
   audio.pause();
   audio.removeAttribute("src");
   audio.load();
-  $("status").textContent = "Idle";
+  setStatus("Idle");
 }
+
+audio.onplaying = () => {
+  const label = $("device").selectedOptions[0]?.textContent || "output";
+  setStatus(`Playing → ${label}`, "ok");
+};
+
+audio.onerror = () => {
+  if (audio.src) setStatus("Stream error — bad URL or station offline", "err");
+};
 
 $("volume").addEventListener("input", (e) => {
   audio.volume = Number(e.target.value) / 100;
