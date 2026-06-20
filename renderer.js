@@ -48,6 +48,8 @@ async function play() {
   const url = custom || (station && station.url);
   if (!url) return;
 
+  audio.volume = Number($("volume").value) / 100;
+
   if (audio.setSinkId) {
     try { await audio.setSinkId($("device").value); }
     catch (e) { $("status").textContent = "Could not route audio: " + e.message; return; }
@@ -68,6 +70,11 @@ function stop() {
   audio.load();
   $("status").textContent = "Idle";
 }
+
+$("volume").addEventListener("input", (e) => {
+  audio.volume = Number(e.target.value) / 100;
+  $("volval").textContent = e.target.value + "%";
+});
 
 $("play").addEventListener("click", play);
 $("stop").addEventListener("click", stop);
