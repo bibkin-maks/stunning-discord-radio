@@ -1,3 +1,5 @@
+const PORT = new URLSearchParams(location.search).get("port");
+
 const STATIONS = [
   { name: "Groove Salad · SomaFM", url: "https://ice1.somafm.com/groovesalad-128-mp3" },
   { name: "Drone Zone · SomaFM", url: "https://ice1.somafm.com/dronezone-128-mp3" },
@@ -51,7 +53,7 @@ async function play() {
     catch (e) { $("status").textContent = "Could not route audio: " + e.message; return; }
   }
 
-  audio.src = url;
+  audio.src = `http://127.0.0.1:${PORT}/stream?url=${encodeURIComponent(url)}`;
   try {
     await audio.play();
     $("status").textContent = "Playing " + (custom ? url : station.name);
