@@ -5,37 +5,70 @@
   <title>Discord Audio</title>
 </head>
 <body>
-  <h3>Discord Radio</h3>
 
-  <div>
-    <label for="station">Station</label>
-    <select id="station"></select>
-  </div>
-  <div>
-    <label for="custom">Custom stream URL</label>
-    <input id="custom" type="text" placeholder="https://" />
+  <div class="header">
+    <div class="wordmark">Discord <em>Audio</em></div>
+    <div class="header-tag">Routing</div>
   </div>
 
-  <div>
-    <label for="device-listen">Listen on</label>
-    <select id="device-listen"></select>
-  </div>
-  <div>
-    <label for="device-discord">Send to Discord</label>
-    <select id="device-discord"></select>
-  </div>
-  <button id="refresh">Refresh devices</button>
+  <div class="rule" id="rule"></div>
 
-  <div>
-    <label for="volume">Volume</label>
+  <div class="mode-toggle">
+    <button class="mode-btn active" id="tab-radio">Radio</button>
+    <button class="mode-btn" id="tab-system">System Audio</button>
+  </div>
+
+  <div id="section-radio">
+    <div class="field-group">
+      <label class="field-label" for="station">Station</label>
+      <div class="field-wrap">
+        <select id="station"></select>
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label" for="custom">Custom stream URL</label>
+      <input id="custom" type="text" placeholder="https://  — leave blank to use station above" />
+    </div>
+  </div>
+
+  <div id="section-system" style="display:none">
+    <div class="sys-card">
+      <strong>Everything playing on your PC</strong>
+      <span>YouTube, Spotify, games — press Play to start routing.</span>
+    </div>
+  </div>
+
+  <div class="field-group" id="field-listen">
+    <label class="field-label" for="device-listen">Listen on</label>
+    <div class="field-wrap">
+      <select id="device-listen"></select>
+    </div>
+  </div>
+
+  <div class="field-group">
+    <label class="field-label" for="device-discord">Send to Discord</label>
+    <div class="field-wrap">
+      <select id="device-discord"></select>
+    </div>
+  </div>
+
+  <button id="refresh">↻ Refresh devices</button>
+
+  <div class="vol-row">
+    <span class="vol-label">Vol</span>
     <input id="volume" type="range" min="0" max="100" value="85" />
-    <span id="volval">85%</span>
+    <span class="vol-val" id="volval">85%</span>
   </div>
 
-  <button id="play">Play</button>
-  <button id="stop">Stop</button>
+  <div class="controls">
+    <button class="btn" id="play">▶ Play</button>
+    <button class="btn" id="stop">■ Stop</button>
+  </div>
 
-  <div id="status">Idle</div>
+  <div class="status-row">
+    <div class="dot" id="dot"></div>
+    <span id="status">Idle</span>
+  </div>
 
   <script src="renderer.js"></script>
 </body>

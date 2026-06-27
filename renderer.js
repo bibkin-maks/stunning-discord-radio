@@ -9,6 +9,9 @@ const STATIONS = [
 
 const $ = (id) => document.getElementById(id);
 
+let mode = "radio";
+let systemStream = null;
+
 const audioListen = new Audio();
 const audioDiscord = new Audio();
 audioListen.crossOrigin = "anonymous";
@@ -16,8 +19,16 @@ audioDiscord.crossOrigin = "anonymous";
 
 function setStatus(msg, cls) {
   const el = $("status");
+  const dot = $("dot");
   el.textContent = msg;
   el.className = cls || "";
+  dot.className = "dot" + (cls ? " " + cls : "");
+}
+
+function setPlaying(playing) {
+  const rule = $("rule");
+  if (playing) rule.classList.add("playing");
+  else rule.classList.remove("playing");
 }
 
 function fillStations() {
@@ -75,36 +86,86 @@ async function routeAndPlay(listenEl, discordEl) {
   }
 }
 
-async function play() {
+async function playRadio() {
   const custom = $("custom").value.trim();
   const station = STATIONS[Number($("station").value)];
   const url = custom || (station && station.url);
   if (!url) return setStatus("No station or URL selected", "err");
 
   const src = `http://127.0.0.1:${PORT}/stream?url=${encodeURIComponent(url)}`;
+  audioListen.srcObject = null;
+  audioDiscord.srcObject = null;
   audioListen.src = src;
   audioDiscord.src = src;
 
   await routeAndPlay(audioListen, audioDiscord);
 }
 
+async function playSystem() {
+  setStatus("Capturing system audio…");
+  try {
+    const stream = await navigator.mediaDevices.getDisplayMedia({ audio: true, video: true });
+    stream.getVideoTracks().forEach((t) => t.stop());
+
+    systemStream = stream;
+    const tracks = stream.getAudioTracks();
+    if (!tracks.length) {
+      setStatus("No audio captured — make sure something is playing", "err");
+      return;
+    }
+
+    // No listen-back needed — user already hears it from the source app.
+    audioDiscord.removeAttribute("src");
+    audioDiscord.srcObject = new MediaStream(tracks);
+    audioDiscord.volume = Number($("volume").value) / 100;
+
+    if (audioDiscord.setSinkId) {
+      try { await audioDiscord.setSinkId($("device-discord").value); }
+      catch (e) { setStatus("Could not route Discord device: " + e.message, "err"); return; }
+    }
+
+    setStatus("Connecting…");
+    await audioDiscord.play();
+  } catch (e) {
+    setStatus("Capture failed: " + e.message, "err");
+  }
+}
+
+function play() {
+  return mode === "radio" ? playRadio() : playSystem();
+}
+
 function stop() {
   for (const a of [audioListen, audioDiscord]) {
     a.pause();
+    a.srcObject = null;
     a.removeAttribute("src");
     a.load();
   }
+  if (systemStream) {
+    systemStream.getTracks().forEach((t) => t.stop());
+    systemStream = null;
+  }
+  setPlaying(false);
   setStatus("Idle");
 }
 
-audioListen.onplaying = () => {
-  const listenLabel = $("device-listen").selectedOptions[0]?.textContent || "speakers";
+function onPlayingHandler() {
   const discordLabel = $("device-discord").selectedOptions[0]?.textContent || "virtual cable";
-  setStatus(`Playing → ${listenLabel}  ·  ${discordLabel}`, "ok");
-};
+  if (mode === "system") {
+    setStatus(`Playing → ${discordLabel}`, "ok");
+  } else {
+    const listenLabel = $("device-listen").selectedOptions[0]?.textContent || "speakers";
+    setStatus(`Playing → ${listenLabel}  ·  ${discordLabel}`, "ok");
+  }
+  setPlaying(true);
+}
+audioListen.onplaying = onPlayingHandler;
+audioDiscord.onplaying = () => { if (mode === "system") onPlayingHandler(); };
 
 audioListen.onerror = () => {
-  if (audioListen.src) {
+  if (audioListen.src || audioListen.srcObject) {
+    setPlaying(false);
     setStatus("Stream error — bad URL or station offline", "err");
   }
 };
@@ -114,6 +175,26 @@ $("volume").addEventListener("input", (e) => {
   audioListen.volume = vol;
   audioDiscord.volume = vol;
   $("volval").textContent = e.target.value + "%";
+});
+
+$("tab-radio").addEventListener("click", () => {
+  mode = "radio";
+  $("tab-radio").classList.add("active");
+  $("tab-system").classList.remove("active");
+  $("section-radio").style.display = "";
+  $("section-system").style.display = "none";
+  $("field-listen").style.display = "";
+  stop();
+});
+
+$("tab-system").addEventListener("click", () => {
+  mode = "system";
+  $("tab-system").classList.add("active");
+  $("tab-radio").classList.remove("active");
+  $("section-system").style.display = "";
+  $("section-radio").style.display = "none";
+  $("field-listen").style.display = "none";
+  stop();
 });
 
 $("play").addEventListener("click", play);
