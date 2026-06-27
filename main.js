@@ -1,4 +1,4 @@
-const { app, BrowserWindow, session } = require("electron");
+const { app, BrowserWindow, session, desktopCapturer } = require("electron");
 const http = require("http");
 const { Readable } = require("stream");
 
@@ -61,6 +61,14 @@ function createWindow() {
 
 app.whenReady().then(async () => {
   session.defaultSession.setPermissionRequestHandler((_wc, _perm, cb) => cb(true));
+
+  // Auto-approve system audio capture via getDisplayMedia — picks first screen
+  // with WASAPI loopback so the renderer gets system audio without a picker dialog.
+  session.defaultSession.setDisplayMediaRequestHandler((_req, callback) => {
+    desktopCapturer.getSources({ types: ["screen"] }).then((sources) => {
+      callback({ video: sources[0], audio: "loopback" });
+    });
+  });
 
   await startProxy();
   createWindow();
