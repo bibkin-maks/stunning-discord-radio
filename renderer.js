@@ -2,9 +2,12 @@ const PORT = new URLSearchParams(location.search).get("port");
 
 const STATIONS = [
   { name: "Groove Salad · SomaFM", url: "https://ice1.somafm.com/groovesalad-128-mp3" },
+  { name: "Lush · SomaFM", url: "https://ice1.somafm.com/lush-128-mp3" },
   { name: "Drone Zone · SomaFM", url: "https://ice1.somafm.com/dronezone-128-mp3" },
   { name: "DEF CON Radio · SomaFM", url: "https://ice1.somafm.com/defcon-256-mp3" },
+  { name: "Indie Pop Rocks · SomaFM", url: "https://ice1.somafm.com/indiepop-128-mp3" },
   { name: "Secret Agent · SomaFM", url: "https://ice1.somafm.com/secretagent-128-mp3" },
+  { name: "Sonic Universe · SomaFM", url: "https://ice1.somafm.com/sonicuniverse-128-mp3" },
 ];
 
 const $ = (id) => document.getElementById(id);
